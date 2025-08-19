@@ -342,10 +342,6 @@ execute @a[r=5] ~ ~ ~ tp @s 100 64 100"></textarea>
                         <input type="checkbox" id="batchMode">
                         <label for="batchMode">启用批量转换模式（每行一个指令）</label>
                     </div>
-                    <div class="option-item">
-                        <input type="checkbox" id="bilibiliMode">
-                        <label for="bilibiliMode">B站评论区复制模式（将【】转换为[]）</label>
-                    </div>
                 </div>
                 
                 <div class="buttons">
@@ -393,12 +389,82 @@ execute @a[r=5] ~ ~ ~ tp @s 100 64 100"></textarea>
     </div>
 
     <script>
+        // 中文符号转英文符号映射表
+        const chineseToEnglishMap = {
+            '，': ',',
+            '。': '.',
+            '；': ';',
+            '：': ':',
+            '！': '!',
+            '？': '?',
+            '“': '"',
+            '”': '"',
+            '‘': "'",
+            '’': "'",
+            '【': '[',
+            '】': ']',
+            '（': '(',
+            '）': ')',
+            '｛': '{',
+            '｝': '}',
+            '［': '[',
+            '］': ']',
+            '＜': '<',
+            '＞': '>',
+            '＝': '=',
+            '＋': '+',
+            '－': '-',
+            '＊': '*',
+            '／': '/',
+            '％': '%',
+            '＃': '#',
+            '＆': '&',
+            '｜': '|',
+            '＼': '\\',
+            '｀': '`',
+            '～': '~',
+            '＠': '@',
+            '＄': '$',
+            '＾': '^',
+            '＆': '&',
+            '＊': '*',
+            '（': '(',
+            '）': ')',
+            '－': '-',
+            '＿': '_',
+            '＝': '=',
+            '＋': '+',
+            '［': '[',
+            '］': ']',
+            '｛': '{',
+            '｝': '}',
+            '｜': '|',
+            '＼': '\\',
+            '：': ':',
+            '；': ';',
+            '＂': '"',
+            '＇': "'",
+            '，': ',',
+            '．': '.',
+            '／': '/',
+            '＜': '<',
+            '＞': '>',
+            '？': '?',
+            '～': '~'
+        };
+
+        // 转换中文符号为英文符号
+        function convertChineseSymbols(text) {
+            return text.replace(/[\u3000-\u303f\uff00-\uffef]/g, function(match) {
+                return chineseToEnglishMap[match] || match;
+            });
+        }
+
         // 主要转换函数
         function convertCommand() {
             const oldCommand = document.getElementById('oldCommand').value.trim();
             const resultTextarea = document.getElementById('result');
             const batchMode = document.getElementById('batchMode').checked;
-            const bilibiliMode = document.getElementById('bilibiliMode').checked;
             
             if (!oldCommand) {
                 resultTextarea.value = '请输入有效的旧版execute指令';
@@ -409,10 +475,13 @@ execute @a[r=5] ~ ~ ~ tp @s 100 64 100"></textarea>
             }
             
             try {
+                // 先转换中文符号为英文符号
+                let processedCommand = convertChineseSymbols(oldCommand);
+                
                 let result;
                 if (batchMode) {
                     // 批量转换模式
-                    const commands = oldCommand.split('\n').filter(cmd => cmd.trim().length > 0);
+                    const commands = processedCommand.split('\n').filter(cmd => cmd.trim().length > 0);
                     const convertedCommands = [];
                     
                     for (let i = 0; i < commands.length; i++) {
@@ -430,12 +499,7 @@ execute @a[r=5] ~ ~ ~ tp @s 100 64 100"></textarea>
                     result = convertedCommands.join('\n');
                 } else {
                     // 单条指令转换
-                    result = convertExecuteCommand(oldCommand);
-                }
-                
-                // B站评论区模式处理
-                if (bilibiliMode) {
-                    result = result.replace(/【/g, '[').replace(/】/g, ']');
+                    result = convertExecuteCommand(processedCommand);
                 }
                 
                 resultTextarea.value = result;
@@ -531,7 +595,6 @@ execute @a[r=5] ~ ~ ~ tp @s 100 64 100"></textarea>
             resultTextarea.style.background = 'white';
             resultTextarea.style.color = '#333';
             document.getElementById('batchMode').checked = false;
-            document.getElementById('bilibiliMode').checked = false;
         }
         
         // 复制结果到剪贴板
